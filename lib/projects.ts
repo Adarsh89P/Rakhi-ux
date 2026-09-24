@@ -4,8 +4,6 @@ export type Project = {
   title: string;
   period: string;
   description: string;
-  /** Short discipline tags shown as chips on the card */
-  tags: string[];
   href: string;
   /** Path under /public */
   thumbnail: string;
@@ -21,8 +19,6 @@ export const projects: Project[] = [
     period: "Mar 2025 – Jul 2025",
     description:
       "Five connected products, four user types, one system. Simplified patient, doctor and admin workflows across app, website and dashboard.",
-    // TODO: confirm tags with Rakhi
-    tags: ["Healthcare", "Dashboard", "Mobile"],
     href: `${CASE_STUDY_BASE}/suraksha_case_study.html`,
     thumbnail: "/images/projects/suraksha.png",
     thumbnailAlt: "Suraksha admin dashboard showing diagnostic bookings and analytics",
@@ -33,8 +29,6 @@ export const projects: Project[] = [
     period: "Jan 2024 – Nov 2024",
     description:
       "Replaced five scattered wellness apps — timetable, video library, meditation, recipes and shop — with one. Four-screen onboarding into guided sessions, routines and progress tracking.",
-    // TODO: confirm tags with Rakhi
-    tags: ["Wellness", "Mobile App"],
     href: `${CASE_STUDY_BASE}/yoga_case_study.html`,
     thumbnail: "/images/projects/yoga.jpg",
     thumbnailAlt: "Yoga All-in-One app screens with guided sessions and routines",
@@ -45,8 +39,6 @@ export const projects: Project[] = [
     period: "Jan 2023 – Sept 2023",
     description:
       "One platform for influencer–brand collaboration covering the full four-stage journey: discovery, communication, payments and campaign tracking.",
-    // TODO: confirm tags with Rakhi
-    tags: ["Marketplace", "Web App"],
     href: "https://www.figma.com/deck/7Z5C9KMnP7e2YqW3y3xLEM/Cheeky?node-id=2-1411&t=EG6GvTgBjcCRHNGp-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1",
     thumbnail: "/images/projects/influencer.png",
     thumbnailAlt: "Influencer marketing platform screens for campaign discovery and tracking",
@@ -57,8 +49,6 @@ export const projects: Project[] = [
     period: "Jan 2024 – Jul 2024",
     description:
       "A taxi booking app for Malta, where most riders are tourists: clear pricing before the ride is confirmed, a live map of nearby taxis, and a booking flow short enough to finish at the kerb.",
-    // TODO: confirm tags with Rakhi
-    tags: ["Mobility", "Mobile App"],
     href: `${CASE_STUDY_BASE}/malta_taxi_case_study.html`,
     thumbnail: "/images/projects/malta-taxi.png",
     thumbnailAlt: "Malta Taxi app screens with a live map and fare estimate",
@@ -69,8 +59,6 @@ export const projects: Project[] = [
     period: "Nov 2025",
     description:
       "A three-screen onboarding into QIIB’s mobile banking app, opening onto four destinations — accounts, partner services, ATM locator and a live currency converter.",
-    // TODO: confirm tags with Rakhi
-    tags: ["Fintech", "Onboarding"],
     href: `${CASE_STUDY_BASE}/banking_case_study.html`,
     thumbnail: "/images/projects/banking.png",
     thumbnailAlt: "Mobile banking onboarding screens",

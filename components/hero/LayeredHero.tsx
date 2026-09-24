@@ -2,33 +2,36 @@
 
 import Image from "next/image";
 import { motion, type MotionStyle, type MotionValue } from "framer-motion";
-import { ArrowDownRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { SlabEdge } from "@/components/hero/SlabEdge";
+import { moreProjectsHref } from "@/lib/projects";
 import type { HeroLayer } from "@/lib/useHeroMotion";
 import { cn } from "@/lib/utils";
 
 export type HeroContent = {
+  name: string;
   word: string;
+  tagline: string;
   eyebrow: string;
   headline: string;
   subtext: string;
   cta: { label: string; href: string };
-  nav: { label: string; href: string }[];
+  nav: { label: string; href: string; external?: boolean }[];
   portrait: { src: string; alt: string; width: number; height: number };
 };
 
 export const heroContent: HeroContent = {
+  name: "Rakhi Das",
   word: "DESIGN",
-  eyebrow: "Product Designer",
-  headline: "I design products that feel simple, even when they are not.",
-  subtext: "UI/UX designer in Kolkata — research-led, end-to-end product design.",
+  tagline: "research-led, end to end.",
+  eyebrow: "Product Designer · Kolkata",
+  headline: "I’m a product designer",
+  subtext: "I design products that feel simple, even when they are not.",
   cta: { label: "View Work", href: "#work" },
-  // TODO: point these at real section ids once Experience / Gallery / Contact exist
   nav: [
     { label: "Work", href: "#work" },
-    { label: "Experience", href: "#experience" },
-    { label: "Gallery", href: "#gallery" },
+    { label: "Behance", href: moreProjectsHref, external: true },
     { label: "Contact", href: "mailto:dasrakhi303@gmail.com" },
   ],
   portrait: {
@@ -48,10 +51,11 @@ type LayeredHeroProps = {
   className?: string;
 };
 
-// Shared placement for the word + portrait so the three layers line up exactly
-const FIGURE_POSITION = "left-1/2 md:left-[60%]";
+// Shared placement so the solid word, portrait and outline word line up exactly
+const FIGURE_X = "left-1/2 md:left-[60%]";
+const WORD_TOP = "top-[19%] md:top-[14%]";
 const WORD_CLASS =
-  "font-display uppercase leading-[0.8] tracking-[-0.01em] text-[26vw] md:text-[20vw] select-none whitespace-nowrap";
+  "absolute -translate-x-1/2 select-none whitespace-nowrap font-display uppercase leading-[0.8] tracking-[-0.01em] text-[26vw] md:text-[20vw]";
 
 // Fine film grain as an inline SVG (feTurbulence), tiled over the portrait
 const GRAIN_SVG =
@@ -79,21 +83,21 @@ function Layer({
   );
 }
 
-/** Soft contact shadow painted just below a slab; only visible once layers separate */
-function SlabShadow({ opacity }: { opacity?: MotionValue<number> }) {
+/** Soft contact shadow painted just below a lifted layer; invisible while flat */
+function SlabShadow({ opacity, className }: { opacity?: MotionValue<number>; className?: string }) {
   if (!opacity) return null;
   return (
     <motion.div
       aria-hidden
-      style={{ opacity, z: -30 }}
-      className="absolute inset-[6%] rounded-[3rem] bg-black/60 blur-3xl"
+      style={{ opacity, z: -24 }}
+      className={cn("absolute rounded-[2rem] bg-black/25 blur-2xl", className)}
     />
   );
 }
 
 export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity, className }: LayeredHeroProps) {
   const { portrait } = content;
-  const maskStyle: React.CSSProperties = {
+  const silhouetteMask: React.CSSProperties = {
     WebkitMaskImage: `url(${portrait.src})`,
     maskImage: `url(${portrait.src})`,
     WebkitMaskSize: "100% 100%",
@@ -102,36 +106,63 @@ export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity,
 
   return (
     <div
-      className={cn("relative h-svh w-full overflow-hidden bg-background", className)}
+      className={cn("relative h-svh w-full text-neutral-900", className)}
       style={{ transformStyle: "preserve-3d" }}
     >
-      {/* Layer 1 — solid word + ambient glow */}
-      <Layer ariaHidden style={layerStyles?.background}>
+      {/* Base slab — the light "paper" the hero is printed on */}
+      <Layer ariaHidden style={layerStyles?.base}>
         <div
-          className={cn(
-            "absolute top-[10%] h-[60vh] w-[70vw] -translate-x-1/2 rounded-full opacity-40 blur-[120px] md:top-[20%]",
-            FIGURE_POSITION,
-          )}
-          style={{ background: "radial-gradient(closest-side, #b16cea, #fa5f72 55%, transparent)" }}
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(120% 90% at 60% 35%, #f4f3f0 0%, #e6e5e1 60%, #d9d8d3 100%)" }}
         />
-        <p
-          className={cn(
-            WORD_CLASS,
-            "absolute top-[19%] -translate-x-1/2 text-neutral-200 md:top-[14%]",
-            FIGURE_POSITION,
-          )}
+        <SlabEdge thickness={140} className="bg-gradient-to-b from-[#d6d4cf] to-[#9f9d97]" />
+      </Layer>
+
+      {/* Page chrome printed on the slab: name + vertical nav */}
+      <Layer style={layerStyles?.base}>
+        <p className="pointer-events-auto absolute left-5 top-6 text-xs font-semibold uppercase tracking-[0.25em] md:left-16 md:top-8">
+          {content.name}
+        </p>
+
+        <nav
+          aria-label="Primary"
+          className="pointer-events-auto absolute right-5 top-5 md:bottom-10 md:left-5 md:right-auto md:top-auto"
         >
-          {content.word}
+          <ul className="flex gap-5 text-xs font-medium text-neutral-600 md:rotate-180 md:[writing-mode:vertical-rl]">
+            {content.nav.map((item) => (
+              <li key={item.label}>
+                <a
+                  href={item.href}
+                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className="rounded-sm transition-colors hover:text-neutral-950 focus-visible:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+      </Layer>
+
+      {/* Layer 1 — solid word + tagline */}
+      <Layer ariaHidden style={layerStyles?.background}>
+        <p className={cn(WORD_CLASS, WORD_TOP, FIGURE_X, "text-neutral-950")}>{content.word}</p>
+        <p className="absolute right-[4vw] top-[calc(14svh+24vw)] hidden max-w-[16rem] text-right text-2xl font-semibold leading-tight tracking-tight md:block">
+          {content.tagline}
         </p>
       </Layer>
 
       {/* Layer 2 — grayscale portrait with halftone + grain */}
       <Layer style={layerStyles?.portrait}>
-        <SlabShadow opacity={shadowOpacity} />
+        <SlabShadow
+          opacity={shadowOpacity}
+          className={cn("bottom-0 h-[70svh] w-[34vw] -translate-x-1/2", FIGURE_X)}
+        />
         <div
           className={cn(
-            "absolute bottom-[36svh] aspect-[533/740] h-[44svh] -translate-x-1/2 [mask-image:linear-gradient(to_bottom,black_58%,transparent_94%)] md:bottom-0 md:h-[88svh]",
-            FIGURE_POSITION,
+            "absolute bottom-[36svh] aspect-[533/740] h-[44svh] -translate-x-1/2 [mask-image:linear-gradient(to_bottom,black_58%,transparent_94%)] md:bottom-0 md:h-[88svh] md:[mask-image:none]",
+            FIGURE_X,
           )}
         >
           <Image
@@ -140,14 +171,14 @@ export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity,
             width={portrait.width}
             height={portrait.height}
             priority
-            className="h-full w-full object-contain [filter:grayscale(1)_contrast(1.12)_brightness(0.95)]"
+            className="h-full w-full object-contain [filter:grayscale(1)_contrast(1.15)]"
           />
           {/* Halftone dots, clipped to the cutout silhouette */}
           <div
             aria-hidden
             className="absolute inset-0 opacity-35 mix-blend-multiply"
             style={{
-              ...maskStyle,
+              ...silhouetteMask,
               backgroundImage: "radial-gradient(circle at center, rgb(0 0 0 / 0.55) 0.9px, transparent 1.5px)",
               backgroundSize: "4px 4px",
             }}
@@ -156,64 +187,50 @@ export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity,
           <div
             aria-hidden
             className="absolute inset-0 opacity-35 mix-blend-overlay"
-            style={{ ...maskStyle, backgroundImage: GRAIN_SVG }}
+            style={{ ...silhouetteMask, backgroundImage: GRAIN_SVG }}
           />
         </div>
       </Layer>
 
       {/* Layer 3 — outline word over the face */}
       <Layer ariaHidden style={layerStyles?.outline}>
-        <SlabShadow opacity={shadowOpacity} />
         <p
           className={cn(
             WORD_CLASS,
-            "absolute top-[19%] -translate-x-1/2 text-transparent [-webkit-text-stroke:1px_rgb(255_255_255/0.75)] md:top-[14%]",
-            FIGURE_POSITION,
+            WORD_TOP,
+            FIGURE_X,
+            "text-transparent [-webkit-text-stroke:1px_rgb(255_255_255/0.85)]",
           )}
         >
           {content.word}
         </p>
       </Layer>
 
-      {/* Layer 4 — UI column */}
-      <Layer style={layerStyles?.ui} className="pointer-events-auto">
-        <div className="absolute left-5 top-6 font-sans text-lg font-semibold tracking-tight md:left-10 md:top-8">
-          Rakhi<span className="text-accent-pink">.</span>UX
-        </div>
-
-        <div className="absolute inset-x-5 bottom-8 flex flex-col gap-5 md:inset-x-auto md:bottom-auto md:left-10 md:top-1/2 md:w-[min(30vw,24rem)] md:-translate-y-1/2 md:gap-6">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <span className="bg-accent-gradient bg-clip-text text-transparent">✦</span>
-            {content.eyebrow}
-          </p>
-          <h1 className="font-serif text-3xl leading-[1.05] text-balance md:text-5xl">{content.headline}</h1>
-          <p className="max-w-xs text-sm text-muted-foreground md:text-base">{content.subtext}</p>
-          <div>
-            <Button asChild size="lg">
-              <a href={content.cta.href}>
-                {content.cta.label}
-                <ArrowDownRight aria-hidden />
-              </a>
-            </Button>
+      {/* Layer 4 — intro card */}
+      <Layer style={layerStyles?.ui}>
+        <div
+          className="pointer-events-auto absolute inset-x-5 bottom-6 md:inset-x-auto md:bottom-auto md:left-16 md:top-1/2 md:w-[min(30vw,25rem)] md:-translate-y-1/2"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <SlabShadow opacity={shadowOpacity} className="inset-2" />
+          <div
+            className="relative rounded-2xl bg-[#f7f6f3] p-6 shadow-[0_1px_0_rgb(255_255_255)_inset,0_10px_30px_-12px_rgb(0_0_0/0.25)] md:p-8"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">
+              ✦ {content.eyebrow}
+            </p>
+            <h1 className="mt-3 font-serif text-4xl leading-[1.02] md:text-6xl">{content.headline}</h1>
+            <p className="mt-4 max-w-xs text-sm text-neutral-600 md:text-base">{content.subtext}</p>
+            <a
+              href={content.cta.href}
+              className="mt-6 inline-flex h-11 items-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-medium text-white shadow-[0_8px_20px_-8px_rgb(37_99_235/0.8)] transition-colors hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f6f3]"
+            >
+              {content.cta.label}
+              <ArrowRight className="size-4" aria-hidden />
+            </a>
+            <SlabEdge thickness={18} className="rounded-b-2xl bg-gradient-to-b from-[#dcdad5] to-[#b3b1ab]" />
           </div>
-
-          <nav aria-label="Sections" className="mt-4 hidden md:block">
-            <ul className="flex flex-col gap-1 border-l border-border pl-4">
-              {content.nav.map((item, i) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="group flex items-baseline gap-3 rounded-sm py-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span className="font-mono text-[10px] text-neutral-600 group-hover:text-accent-pink">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
         </div>
       </Layer>
     </div>

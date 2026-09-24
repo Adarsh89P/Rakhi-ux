@@ -1,10 +1,9 @@
-import { LayeredHero } from "@/components/hero/LayeredHero";
+import { HeroToProjects } from "@/components/hero/HeroToProjects";
 
-// TODO: replace with <HeroToProjects /> once the scroll stage is built
 export default function Home() {
   return (
     <main id="main">
-      <LayeredHero />
+      <HeroToProjects />
     </main>
   );
 }
