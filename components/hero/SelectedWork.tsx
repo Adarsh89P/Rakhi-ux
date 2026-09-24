@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
 import { moreProjectsHref, projects, type Project } from "@/lib/projects";
-import { cn } from "@/lib/utils";
+import { cn, withBasePath } from "@/lib/utils";
 
 /**
  * Size + surface of the landing panel. WorkBackdrop flies a blank copy of this
@@ -38,7 +38,7 @@ function ProjectCard({ project, detailed }: { project: Project; detailed: boolea
         <CardGlow />
         <span className={cn("relative block overflow-hidden bg-neutral-900", detailed ? "aspect-[16/10]" : "min-h-0 flex-1")}>
           <Image
-            src={project.thumbnail}
+            src={withBasePath(project.thumbnail)}
             alt={project.thumbnailAlt}
             fill
             sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw"

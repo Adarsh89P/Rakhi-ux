@@ -7,7 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { SlabEdge } from "@/components/hero/SlabEdge";
 import { moreProjectsHref } from "@/lib/projects";
 import type { HeroLayer } from "@/lib/useHeroMotion";
-import { cn } from "@/lib/utils";
+import { cn, withBasePath } from "@/lib/utils";
 
 export type HeroContent = {
   name: string;
@@ -100,9 +100,10 @@ function SlabShadow({ opacity, className }: { opacity?: MotionValue<number>; cla
 
 export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity, className }: LayeredHeroProps) {
   const { portrait } = content;
+  const portraitSrc = withBasePath(portrait.src);
   const silhouetteMask: React.CSSProperties = {
-    WebkitMaskImage: `url(${portrait.src})`,
-    maskImage: `url(${portrait.src})`,
+    WebkitMaskImage: `url(${portraitSrc})`,
+    maskImage: `url(${portraitSrc})`,
     WebkitMaskSize: "100% 100%",
     maskSize: "100% 100%",
   };
@@ -179,7 +180,7 @@ export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity,
           )}
         >
           <Image
-            src={portrait.src}
+            src={portraitSrc}
             alt={portrait.alt}
             width={portrait.width}
             height={portrait.height}

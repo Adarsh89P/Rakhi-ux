@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:pages": "NEXT_PUBLIC_BASE_PATH=/Rakhi-ux next build"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
