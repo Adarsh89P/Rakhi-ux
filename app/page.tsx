@@ -1,8 +1,10 @@
-// Temporary placeholder — replaced by <HeroToProjects /> in step 8.
+import { LayeredHero } from "@/components/hero/LayeredHero";
+
+// TODO: replace with <HeroToProjects /> once the scroll stage is built
 export default function Home() {
   return (
-    <main id="main" className="grid min-h-screen place-items-center">
-      <h1 className="font-display text-6xl uppercase">Design</h1>
+    <main id="main">
+      <LayeredHero />
     </main>
   );
 }
