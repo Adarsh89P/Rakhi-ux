@@ -10,19 +10,17 @@ type ExplodedStageProps = {
 };
 
 /**
- * Phase 2: tilts the layered hero back into an exploded stack of slabs.
- * Opacity lives on the outer wrapper — putting it on the preserve-3d element
- * would flatten the layers.
+ * Phase 2: tilts the layered hero back into an exploded stack of slabs, then
+ * slides the stack up and out of frame as the camera flies past it.
  */
 export function ExplodedStage({ motion: m }: ExplodedStageProps) {
   return (
     <motion.div
       className="absolute inset-0"
       style={{
-        opacity: m.stage.opacity,
         visibility: m.stage.visibility,
-        perspective: 1400,
-        perspectiveOrigin: "50% 15%",
+        perspective: 1200,
+        perspectiveOrigin: "50% 40%",
       }}
     >
       <motion.div

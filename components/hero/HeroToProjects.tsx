@@ -9,7 +9,7 @@ import { LayeredHero } from "@/components/hero/LayeredHero";
 import { SelectedWork } from "@/components/hero/SelectedWork";
 import { useHeroMotion, WORK_ANCHOR_PROGRESS } from "@/lib/useHeroMotion";
 
-const HEIGHT = { full: "400vh", mobile: "220vh" } as const;
+const HEIGHT = { full: "500vh", mobile: "220vh" } as const;
 
 /**
  * Pinned hero → exploded stack → glass fly-through → Selected Work.
@@ -33,7 +33,7 @@ export function HeroToProjects() {
     const range = container.offsetHeight - window.innerHeight;
     const p = m.progress.get();
     if (workRef.current?.contains(event.target as Node)) {
-      if (p < WORK_ANCHOR_PROGRESS - 0.05) window.scrollTo({ top: top + WORK_ANCHOR_PROGRESS * range });
+      if (p < WORK_ANCHOR_PROGRESS - 0.02) window.scrollTo({ top: top + WORK_ANCHOR_PROGRESS * range });
     } else if (p > 0.3) {
       window.scrollTo({ top });
     }
@@ -41,25 +41,32 @@ export function HeroToProjects() {
 
   return (
     <>
-      <div ref={containerRef} className="relative" style={{ height: animated ? HEIGHT[m.mode as "full" | "mobile"] : undefined }}>
+      <div
+        ref={containerRef}
+        className="relative"
+        style={{ height: animated ? HEIGHT[m.mode as "full" | "mobile"] : undefined }}
+      >
         {animated ? (
           <div className="sticky top-0 h-svh overflow-hidden bg-[#050507]" onFocusCapture={handleFocus}>
+            {/* Corridor sits behind the stack, so it is already there as the stack flies away */}
+            {full && (
+              <GlassTileTunnel
+                cameraZ={m.tunnel.cameraZ}
+                opacity={m.tunnel.opacity}
+                visibility={m.tunnel.visibility}
+                tilesOpacity={m.tunnel.tilesOpacity}
+                panelOpacity={m.tunnel.panelOpacity}
+              />
+            )}
             <ExplodedStage motion={m} />
             {full && (
-              <>
-                <GlassTileTunnel
-                  cameraZ={m.tunnel.cameraZ}
-                  opacity={m.tunnel.opacity}
-                  visibility={m.tunnel.visibility}
-                />
-                <motion.div
-                  ref={workRef}
-                  className="absolute inset-0 grid place-items-center px-4"
-                  style={{ opacity: m.work.opacity, scale: m.work.scale, pointerEvents: m.work.pointerEvents }}
-                >
-                  <SelectedWork variant="stage" />
-                </motion.div>
-              </>
+              <motion.div
+                ref={workRef}
+                className="absolute inset-0"
+                style={{ opacity: m.work.opacity, pointerEvents: m.work.pointerEvents }}
+              >
+                <SelectedWork variant="stage" />
+              </motion.div>
             )}
           </div>
         ) : (

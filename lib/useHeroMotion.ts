@@ -1,52 +1,52 @@
 "use client";
 
 import { useEffect, useSyncExternalStore, type RefObject } from "react";
-import {
-  useMotionValue,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { useMotionValue, useScroll, useTransform, type MotionValue } from "framer-motion";
 
 /**
  * Scroll timeline for the pinned hero → Selected Work section.
  * All values are fractions of the sticky container's scroll progress (0–1).
  */
 export const TIMELINE = {
-  /** Phase 2: tilt back + explode layers (desktop / mobile) */
-  explode: [0.06, 0.36],
+  /** Phase 2: tilt back + explode the layers (desktop / mobile) */
+  explode: [0.04, 0.36],
   explodeMobile: [0.08, 0.8],
-  /** Phase 3: stage dives under the camera while the glass tunnel takes over */
-  stageExit: [0.37, 0.49],
-  tunnelIn: [0.42, 0.52],
-  camera: [0.4, 0.92],
-  tunnelDim: [0.84, 0.96],
-  /** Selected Work lands */
-  work: [0.84, 0.96],
+  /** Glass corridor fades in behind the tilted stack */
+  tunnelIn: [0.24, 0.36],
+  /** Phase 3: camera flies past the stack (it slides up and out of frame) … */
+  stageExit: [0.32, 0.54],
+  /** … and on down the corridor towards the Selected Work panel */
+  camera: [0.34, 0.93],
+  panelIn: [0.5, 0.64],
+  tilesOut: [0.84, 0.93],
+  /** The real, interactive Selected Work replaces the flying panel */
+  work: [0.92, 0.97],
 } as const;
 
-/** Scroll position (0–1) where Selected Work is fully visible — used for the #work anchor */
-export const WORK_ANCHOR_PROGRESS = 0.97;
+/** Scroll position (0–1) where Selected Work has landed — used for the #work anchor */
+export const WORK_ANCHOR_PROGRESS = 0.985;
 
 /** translateZ (px) of each hero layer when fully exploded, before the device depth factor */
 export const LAYER_DEPTH = {
   base: 0,
-  background: 40,
-  portrait: 130,
-  outline: 200,
-  ui: 280,
+  background: 50,
+  portrait: 140,
+  outline: 230,
+  ui: 190,
 } as const;
 
 export type HeroLayer = keyof typeof LAYER_DEPTH;
 
-/** Total Z distance (px) the camera travels through the glass tunnel */
-export const TUNNEL_LENGTH = 2600;
+/** Z distance (px) from the camera's start to the Selected Work panel in the corridor */
+export const TUNNEL_LENGTH = 3400;
 
-const MAX_TILT_X = 55;
-const MAX_TILT_Z = -6;
-const MIN_STAGE_SCALE = 0.62;
-const STAGE_LIFT_VH = -6;
-const STAGE_DIVE_Z = 700;
+const MAX_TILT_X = 60;
+const EXIT_TILT_X = 14;
+const MAX_TILT_Z = -3;
+const MIN_STAGE_SCALE = 0.9;
+const STAGE_LIFT_VH = -4;
+const STAGE_EXIT_Y_VH = -115;
+const STAGE_EXIT_Z = 260;
 
 export type HeroMotionMode = "full" | "mobile" | "reduced";
 
@@ -81,6 +81,8 @@ function ramp(p: number, [start, end]: readonly [number, number]) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
+const toVisibility = (o: number) => (o > 0.001 ? "visible" : "hidden");
+
 export type HeroMotion = {
   mode: HeroMotionMode;
   progress: MotionValue<number>;
@@ -90,7 +92,6 @@ export type HeroMotion = {
     scale: MotionValue<number>;
     y: MotionValue<string>;
     z: MotionValue<number>;
-    opacity: MotionValue<number>;
     visibility: MotionValue<"visible" | "hidden">;
   };
   layers: Record<HeroLayer, MotionValue<number>>;
@@ -100,10 +101,11 @@ export type HeroMotion = {
     cameraZ: MotionValue<number>;
     opacity: MotionValue<number>;
     visibility: MotionValue<"visible" | "hidden">;
+    tilesOpacity: MotionValue<number>;
+    panelOpacity: MotionValue<number>;
   };
   work: {
     opacity: MotionValue<number>;
-    scale: MotionValue<number>;
     pointerEvents: MotionValue<"auto" | "none">;
   };
 };
@@ -141,13 +143,18 @@ export function useHeroMotion(target: RefObject<HTMLElement | null>): HeroMotion
   // Only the desktop fly-through takes the stage away
   const stageExit = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.stageExit));
 
-  const rotateX = useTransform([explode, tilt], ([e, t]: number[]) => e * t * MAX_TILT_X);
+  const rotateX = useTransform(
+    [explode, stageExit, tilt],
+    ([e, s, t]: number[]) => e * t * MAX_TILT_X + s * EXIT_TILT_X,
+  );
   const rotateZ = useTransform([explode, tilt], ([e, t]: number[]) => e * t * MAX_TILT_Z);
   const scale = useTransform([explode, tilt], ([e, t]: number[]) => 1 - e * t * (1 - MIN_STAGE_SCALE));
-  const y = useTransform([explode, stageExit], ([e, s]: number[]) => `${e * STAGE_LIFT_VH + s * 40}vh`);
-  const stageZ = useTransform(stageExit, (s) => s * STAGE_DIVE_Z);
-  const stageOpacity = useTransform(stageExit, (s) => 1 - s);
-  const stageVisibility = useTransform(stageOpacity, (o) => (o > 0.001 ? "visible" : "hidden"));
+  const y = useTransform(
+    [explode, stageExit],
+    ([e, s]: number[]) => `${e * STAGE_LIFT_VH + s * STAGE_EXIT_Y_VH}vh`,
+  );
+  const stageZ = useTransform(stageExit, (s) => s * STAGE_EXIT_Z);
+  const stageVisibility = useTransform(stageExit, (s) => (s < 0.999 ? "visible" : "hidden"));
 
   const layers: Record<HeroLayer, MotionValue<number>> = {
     base: useTransform([explode, depth], ([e, d]: number[]) => e * d * LAYER_DEPTH.base),
@@ -160,31 +167,28 @@ export function useHeroMotion(target: RefObject<HTMLElement | null>): HeroMotion
   const shadowOpacity = useTransform([explode, depth], ([e, d]: number[]) => e * Math.min(1, d * 2));
 
   const cameraZ = useTransform(progress, (p) => ramp(p, TIMELINE.camera) * TUNNEL_LENGTH);
-  const tunnelOpacity = useTransform(
-    [progress, fly],
-    ([p, f]: number[]) => f * (ramp(p, TIMELINE.tunnelIn) - 0.45 * ramp(p, TIMELINE.tunnelDim)),
-  );
-  const tunnelVisibility = useTransform(tunnelOpacity, (o) => (o > 0.001 ? "visible" : "hidden"));
+  const tunnelOpacity = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.tunnelIn));
+  const tunnelVisibility = useTransform(tunnelOpacity, toVisibility);
+  const tilesOpacity = useTransform(progress, (p) => 1 - ramp(p, TIMELINE.tilesOut));
 
   const workReveal = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.work));
-  const workScale = useTransform(workReveal, (w) => 0.9 + w * 0.1);
+  // The flying placeholder panel hands over to the real card once it has landed
+  const panelOpacity = useTransform([progress, workReveal], ([p, w]: number[]) => ramp(p, TIMELINE.panelIn) * (1 - w));
   const workPointerEvents = useTransform(workReveal, (w) => (w > 0.6 ? "auto" : "none"));
 
   return {
     mode,
     progress,
-    stage: {
-      rotateX,
-      rotateZ,
-      scale,
-      y,
-      z: stageZ,
-      opacity: stageOpacity,
-      visibility: stageVisibility,
-    },
+    stage: { rotateX, rotateZ, scale, y, z: stageZ, visibility: stageVisibility },
     layers,
     shadowOpacity,
-    tunnel: { cameraZ, opacity: tunnelOpacity, visibility: tunnelVisibility },
-    work: { opacity: workReveal, scale: workScale, pointerEvents: workPointerEvents },
+    tunnel: {
+      cameraZ,
+      opacity: tunnelOpacity,
+      visibility: tunnelVisibility,
+      tilesOpacity,
+      panelOpacity,
+    },
+    work: { opacity: workReveal, pointerEvents: workPointerEvents },
   };
 }

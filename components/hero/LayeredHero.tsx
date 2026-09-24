@@ -61,6 +61,9 @@ const WORD_CLASS =
 const GRAIN_SVG =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
+/** translateZ (px) of the blank sheets stacked under the hero page */
+const UNDER_SHEETS = [-48, -96, -144];
+
 function Layer({
   style,
   className,
@@ -115,7 +118,17 @@ export function LayeredHero({ content = heroContent, layerStyles, shadowOpacity,
           className="absolute inset-0"
           style={{ background: "radial-gradient(120% 90% at 60% 35%, #f4f3f0 0%, #e6e5e1 60%, #d9d8d3 100%)" }}
         />
-        <SlabEdge thickness={140} className="bg-gradient-to-b from-[#d6d4cf] to-[#9f9d97]" />
+        <SlabEdge thickness={26} className="bg-gradient-to-b from-white to-[#c9c7c1]" />
+        {/* Sheets stacked underneath — hidden while flat, an exploded stack once tilted */}
+        {UNDER_SHEETS.map((z) => (
+          <div
+            key={z}
+            className="absolute inset-0 bg-white/55"
+            style={{ transform: `translateZ(${z}px)`, transformStyle: "preserve-3d" }}
+          >
+            <SlabEdge thickness={22} className="bg-gradient-to-b from-white/95 to-[#d4d2cc]/80" />
+          </div>
+        ))}
       </Layer>
 
       {/* Page chrome printed on the slab: name + vertical nav */}
