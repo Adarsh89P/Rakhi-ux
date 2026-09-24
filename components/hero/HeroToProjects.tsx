@@ -4,15 +4,15 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 
 import { ExplodedStage } from "@/components/hero/ExplodedStage";
-import { GlassTileTunnel } from "@/components/hero/GlassTileTunnel";
 import { LayeredHero } from "@/components/hero/LayeredHero";
 import { SelectedWork } from "@/components/hero/SelectedWork";
+import { WorkBackdrop } from "@/components/hero/WorkBackdrop";
 import { useHeroMotion, WORK_ANCHOR_PROGRESS } from "@/lib/useHeroMotion";
 
-const HEIGHT = { full: "500vh", mobile: "220vh" } as const;
+const HEIGHT = { full: "320vh", mobile: "220vh" } as const;
 
 /**
- * Pinned hero → exploded stack → glass fly-through → Selected Work.
+ * Pinned hero → exploded stack → Selected Work panel flies in.
  * - full: the whole sequence inside one sticky viewport
  * - mobile: gentler tilt only, projects follow as a normal section
  * - reduced motion: static hero followed by a normal projects grid
@@ -48,14 +48,13 @@ export function HeroToProjects() {
       >
         {animated ? (
           <div className="sticky top-0 h-svh overflow-hidden bg-[#050507]" onFocusCapture={handleFocus}>
-            {/* Corridor sits behind the stack, so it is already there as the stack flies away */}
+            {/* Backdrop sits behind the stack, so it is already there as the stack slides away */}
             {full && (
-              <GlassTileTunnel
-                cameraZ={m.tunnel.cameraZ}
-                opacity={m.tunnel.opacity}
-                visibility={m.tunnel.visibility}
-                tilesOpacity={m.tunnel.tilesOpacity}
-                panelOpacity={m.tunnel.panelOpacity}
+              <WorkBackdrop
+                opacity={m.backdrop.opacity}
+                visibility={m.backdrop.visibility}
+                panelZ={m.backdrop.panelZ}
+                panelOpacity={m.backdrop.panelOpacity}
               />
             )}
             <ExplodedStage motion={m} />

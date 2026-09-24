@@ -5,7 +5,7 @@ import { moreProjectsHref, projects, type Project } from "@/lib/projects";
 import { cn } from "@/lib/utils";
 
 /**
- * Size + surface of the landing panel. GlassTileTunnel flies a blank copy of this
+ * Size + surface of the landing panel. WorkBackdrop flies a blank copy of this
  * panel towards the camera, so both must stay identical for a seamless hand-over.
  */
 export const WORK_PANEL_SIZE = "w-[min(80vw,68rem)] h-[min(68vh,40rem)]";

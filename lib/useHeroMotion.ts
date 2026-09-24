@@ -9,22 +9,21 @@ import { useMotionValue, useScroll, useTransform, type MotionValue } from "frame
  */
 export const TIMELINE = {
   /** Phase 2: tilt back + explode the layers (desktop / mobile) */
-  explode: [0.04, 0.36],
+  explode: [0.04, 0.45],
   explodeMobile: [0.08, 0.8],
-  /** Glass corridor fades in behind the tilted stack */
-  tunnelIn: [0.24, 0.36],
-  /** Phase 3: camera flies past the stack (it slides up and out of frame) … */
-  stageExit: [0.32, 0.54],
-  /** … and on down the corridor towards the Selected Work panel */
-  camera: [0.34, 0.93],
-  panelIn: [0.5, 0.64],
-  tilesOut: [0.84, 0.93],
+  /** Glow backdrop fades in behind the tilted stack */
+  backdropIn: [0.36, 0.5],
+  /** Phase 3: the stack slides up and out of frame … */
+  stageExit: [0.42, 0.68],
+  /** … and the Selected Work panel flies in */
+  panelIn: [0.5, 0.6],
+  panelApproach: [0.5, 0.88],
   /** The real, interactive Selected Work replaces the flying panel */
-  work: [0.92, 0.97],
+  work: [0.88, 0.95],
 } as const;
 
 /** Scroll position (0–1) where Selected Work has landed — used for the #work anchor */
-export const WORK_ANCHOR_PROGRESS = 0.985;
+export const WORK_ANCHOR_PROGRESS = 0.97;
 
 /** translateZ (px) of each hero layer when fully exploded, before the device depth factor */
 export const LAYER_DEPTH = {
@@ -37,8 +36,8 @@ export const LAYER_DEPTH = {
 
 export type HeroLayer = keyof typeof LAYER_DEPTH;
 
-/** Z distance (px) from the camera's start to the Selected Work panel in the corridor */
-export const TUNNEL_LENGTH = 3400;
+/** Z distance (px) the Selected Work panel travels towards the camera */
+export const PANEL_DISTANCE = 1200;
 
 const MAX_TILT_X = 60;
 const EXIT_TILT_X = 14;
@@ -97,11 +96,11 @@ export type HeroMotion = {
   layers: Record<HeroLayer, MotionValue<number>>;
   /** 0–1, drives the soft shadows between exploded slabs */
   shadowOpacity: MotionValue<number>;
-  tunnel: {
-    cameraZ: MotionValue<number>;
+  backdrop: {
     opacity: MotionValue<number>;
     visibility: MotionValue<"visible" | "hidden">;
-    tilesOpacity: MotionValue<number>;
+    /** translateZ (px) of the flying panel: −PANEL_DISTANCE → 0 */
+    panelZ: MotionValue<number>;
     panelOpacity: MotionValue<number>;
   };
   work: {
@@ -166,10 +165,9 @@ export function useHeroMotion(target: RefObject<HTMLElement | null>): HeroMotion
 
   const shadowOpacity = useTransform([explode, depth], ([e, d]: number[]) => e * Math.min(1, d * 2));
 
-  const cameraZ = useTransform(progress, (p) => ramp(p, TIMELINE.camera) * TUNNEL_LENGTH);
-  const tunnelOpacity = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.tunnelIn));
-  const tunnelVisibility = useTransform(tunnelOpacity, toVisibility);
-  const tilesOpacity = useTransform(progress, (p) => 1 - ramp(p, TIMELINE.tilesOut));
+  const backdropOpacity = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.backdropIn));
+  const backdropVisibility = useTransform(backdropOpacity, toVisibility);
+  const panelZ = useTransform(progress, (p) => (ramp(p, TIMELINE.panelApproach) - 1) * PANEL_DISTANCE);
 
   const workReveal = useTransform([progress, fly], ([p, f]: number[]) => f * ramp(p, TIMELINE.work));
   // The flying placeholder panel hands over to the real card once it has landed
@@ -182,11 +180,10 @@ export function useHeroMotion(target: RefObject<HTMLElement | null>): HeroMotion
     stage: { rotateX, rotateZ, scale, y, z: stageZ, visibility: stageVisibility },
     layers,
     shadowOpacity,
-    tunnel: {
-      cameraZ,
-      opacity: tunnelOpacity,
-      visibility: tunnelVisibility,
-      tilesOpacity,
+    backdrop: {
+      opacity: backdropOpacity,
+      visibility: backdropVisibility,
+      panelZ,
       panelOpacity,
     },
     work: { opacity: workReveal, pointerEvents: workPointerEvents },
